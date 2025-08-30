@@ -1568,7 +1568,6 @@ ProjectSettings::ProjectSettings() {
 	/* diffusion module add */
 	GLOBAL_DEF("diffusion/enabled", false);
 	GLOBAL_DEF("diffusion/model_path", "");
-
 	/* diffusion module end */
 
 	GLOBAL_DEF("application/run/enable_alt_space_menu", false);
