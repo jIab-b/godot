@@ -31,6 +31,7 @@
 #include "rendering_server_default.h"
 
 #include "core/os/os.h"
+// #include "core/config/project_settings.h"
 #include "renderer_canvas_cull.h"
 #include "renderer_scene_cull.h"
 #include "rendering_server_globals.h"
@@ -398,80 +399,6 @@ void RenderingServerDefault::_thread_loop() {
 
 	DisplayServer::get_singleton()->release_rendering_thread();
 }
-
-// DIFFUSION_MODULE START
-void RenderingServerDefault::diffusion_generate(RID p_viewport, const String &p_prompt) {
-	// Check if diffusion is enabled
-	if (!ProjectSettings::get_singleton()->get_setting("diffusion/enabled", false).operator bool()) {
-		return;
-	}
-	
-	// Detect renderer type
-	String rendering_method = ProjectSettings::get_singleton()->get_setting("rendering/renderer/rendering_method", "forward_plus");
-	bool is_forward_plus = (rendering_method == "forward_plus");
-	bool is_mobile = (rendering_method == "mobile");
-	bool is_compatibility = (rendering_method == "gl_compatibility");
-	
-	print_verbose(vformat("Diffusion: Using %s renderer", rendering_method));
-	
-	// Essential data (available in all renderers)
-	RID depth_tex = RSG::scene->get_viewport_depth_texture(p_viewport);
-	Size2i size = RSG::viewport->get_viewport_size(p_viewport);
-	Transform3D camera_transform = RSG::scene->get_camera_transform(p_viewport);
-	Projection camera_projection = RSG::scene->get_camera_projection(p_viewport);
-	float near = camera_projection.get_z_near();
-	float far = camera_projection.get_z_far();
-	RID color_tex = RSG::scene->get_viewport_color_texture(p_viewport);
-	Ref<Environment> env = RSG::scene->get_environment(p_viewport);
-	if (env.is_null()) { env = nullptr; }
-	
-	// Renderer-specific data
-	RID normal_tex;
-	RID motion_tex;
-	
-	if (is_forward_plus) {
-		// Forward+ renderer - has normals + motion vectors
-		normal_tex = RSG::scene->get_viewport_normal_texture(p_viewport);
-		motion_tex = RSG::scene->get_viewport_motion_texture(p_viewport);
-		if (motion_tex.is_null()) { motion_tex = RID(); } // Set to invalid RID if not available
-		
-		print_verbose("Diffusion: Forward+ mode - using depth + color + normals + motion");
-		
-	} else if (is_mobile || is_compatibility) {
-		// Mobile and Compatibility renderers - depth + color only
-		normal_tex = RID(); // Not available
-		motion_tex = RID(); // Not available
-		
-		print_verbose(vformat("Diffusion: %s mode - using depth + color only", 
-			is_mobile ? "Mobile" : "Compatibility"));
-	}
-	
-	// Validate essential data
-	if (depth_tex.is_null()) {
-		WARN_PRINT("Diffusion: Depth texture not available");
-		return;
-	}
-	if (color_tex.is_null()) {
-		WARN_PRINT("Diffusion: Color texture not available");
-		return;
-	}
-	
-	// Log available data
-	print_verbose(vformat("Diffusion textures: depth=%s, normals=%s, motion=%s, color=%s", 
-		depth_tex.is_valid() ? "✓" : "✗",
-		normal_tex.is_valid() ? "✓" : "✗",
-		motion_tex.is_valid() ? "✓" : "✗",
-		color_tex.is_valid() ? "✓" : "✗"));
-	
-	// Pass to diffusion module for processing
-	if (DiffusionModule::get_singleton()) {
-		DiffusionModule::get_singleton()->generate(depth_tex, normal_tex, color_tex, motion_tex,
-			p_prompt, size, camera_transform, camera_projection, near, far, env);
-	} else {
-		WARN_PRINT("Diffusion module not available");
-	}
-}
-// DIFFUSION_MODULE END
 
 /* INTERPOLATION */
 
