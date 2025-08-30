@@ -1,0 +1,2 @@
+project_setting.cpp, lines 1568 - 1571, add diffusion global options
+rendering_server_default.cpp, lines 402 - 445, add diffusion global options

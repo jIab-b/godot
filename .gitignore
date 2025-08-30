@@ -22,6 +22,8 @@
 ### Build configuration ###
 ###########################
 
+control_test/
+
 /custom.py
 misc/hooks/pre-commit-custom-*
 
@@ -29,6 +31,7 @@ misc/hooks/pre-commit-custom-*
 ### Godot generated files ###
 #############################
 
+bin/
 # Buildsystem
 bin
 *.gen.*

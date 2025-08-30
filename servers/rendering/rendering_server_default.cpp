@@ -399,6 +399,55 @@ void RenderingServerDefault::_thread_loop() {
 	DisplayServer::get_singleton()->release_rendering_thread();
 }
 
+// DIFFUSION_MODULE START
+void RenderingServerDefault::diffusion_generate(RID p_viewport, const String &p_prompt) {
+	// Check if diffusion is enabled
+	if (!ProjectSettings::get_singleton()->get_setting("diffusion/enabled").operator bool()) {
+		return;
+	}
+	
+	// Essential: Linear camera-space depth (32-bit float, normalized 0-1)
+	RID depth_tex = RSG::scene->get_viewport_depth_texture(p_viewport);
+	
+	// Essential: Resolution and aspect (fixed model resolution, e.g., 512x512)
+	Size2i size = RSG::viewport->get_viewport_size(p_viewport);
+	
+	// High-impact: Camera intrinsics/extrinsics + near/far
+	Transform3D camera_transform = RSG::scene->get_camera_transform(p_viewport);
+	Projection camera_projection = RSG::scene->get_camera_projection(p_viewport);
+	float near = camera_projection.get_z_near();
+	float far = camera_projection.get_z_far();
+	
+	// Quality boosters: Camera-space normals (if available in compatibility renderer)
+	RID normal_tex = RSG::scene->get_viewport_normal_texture(p_viewport);
+	if (normal_tex.is_null()) { normal_tex = RID(); // Set to invalid RID if not available}
+	
+	// Quality boosters: Albedo/color buffer
+	RID color_tex = RSG::scene->get_viewport_color_texture(p_viewport);
+	if (color_tex.is_null()) { color_tex = RID(); // Set to invalid RID if not available (rare) }
+
+	
+	// optional extras, not available in compat mode
+
+	// Cannot fetch segmentation/masks without custom render pass
+	// Cannot fetch edge/line mask without custom render pass
+	// Cannot fetch motion vectors in compatibility renderer (no built-in support)
+	// Cannot fetch previous-frame latent flag; handle in module
+	// Interop: GPU handles available via RID (Vulkan interop possible but not used here)
+	// Interop: Exposure/tonemap from environment
+	Ref<Environment> env = RSG::scene->get_environment(p_viewport);
+	if (env.is_null()) {env = nullptr; // Set to null if not available }
+	
+	// Pass to diffusion module for processing
+	if (DiffusionModule::get_singleton()) {
+		DiffusionModule::get_singleton()->generate(depth_tex, normal_tex, color_tex, 
+			p_prompt, size, camera_transform, camera_projection, near, far, env);
+	} else {
+		WARN_PRINT("Diffusion module not available");
+	}
+}
+// DIFFUSION_MODULE END
+
 /* INTERPOLATION */
 
 void RenderingServerDefault::set_physics_interpolation_enabled(bool p_enabled) {

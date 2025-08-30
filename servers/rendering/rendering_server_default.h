@@ -93,6 +93,11 @@ class RenderingServerDefault : public RenderingServer {
 	void _call_on_render_thread(const Callable &p_callable);
 
 public:
+	// DIFFUSION_MODULE START
+	// Added for diffusion integration
+	void diffusion_generate(RID p_viewport, const String &p_prompt);
+	// DIFFUSION_MODULE END
+
 	//if editor is redrawing when it shouldn't, enable this and put a breakpoint in _changes_changed()
 	//#define DEBUG_CHANGES
 
