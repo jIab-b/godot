@@ -1,13 +1,16 @@
 #include "diffusion_effect.h"
 
 #include "core/config/project_settings.h"
+#include "core/config/engine.h"
+#include "core/input/input.h"
+#include "core/os/keyboard.h"
 #include "core/os/os.h"
 #include "core/object/class_db.h"
 #include "core/io/image.h"
 #include "servers/rendering/renderer_rd/storage_rd/render_data_rd.h"
 #include "servers/rendering/renderer_rd/storage_rd/render_scene_buffers_rd.h"
 
-static bool g_diffusion_capture_requested = false;
+static bool g_diffusion_prev_key4_pressed = false;
 
 void DiffusionEffect::_bind_methods() {
 }
@@ -67,14 +70,32 @@ void DiffusionEffect::_render_callback(int p_effect_callback_type, const RenderD
 	float z_far = rd->scene_data->z_far;
 	Size2i size = rb->get_internal_size();
 
-	// On-demand depth capture and external pipeline call
-	if (g_diffusion_capture_requested) {
-		g_diffusion_capture_requested = false;
-		_run_lightning_with_depth(p_depth, size.x, size.y, z_near, z_far);
-	}
+    // Do not trigger generation here; per-frame logic handles key press and manual invocation.
 }
 
 
+
+void DiffusionEffect::_per_frame_update(const RenderData *p_render_data, RID p_color, RID p_depth, RID p_motion, RID p_normal_roughness) {
+	const RenderDataRD *rd = static_cast<const RenderDataRD *>(p_render_data);
+	if (!rd) { return; }
+	Ref<RenderSceneBuffersRD> rb = rd->render_buffers;
+	if (rb.is_null()) { return; }
+	bool in_editor = Engine::get_singleton()->is_editor_hint();
+	if (in_editor) { return; }
+	bool pressed = Input::get_singleton()->is_key_pressed(Key::KEY_4);
+	if (pressed && !g_diffusion_prev_key4_pressed) {
+		RID color;
+		RID depth;
+		RID motion;
+		RID normal_roughness;
+		_render_callback(get_effect_callback_type(), p_render_data, color, depth, motion, normal_roughness);
+		Size2i size = rb->get_internal_size();
+		float z_near = rd->scene_data->z_near;
+		float z_far = rd->scene_data->z_far;
+		_run_lightning_with_depth(depth, size.x, size.y, z_near, z_far);
+	}
+	g_diffusion_prev_key4_pressed = pressed;
+}
 
 void DiffusionEffect::_run_lightning_with_depth(const RID &p_depth, int p_width, int p_height, float p_z_near, float p_z_far) {
 	if (!p_depth.is_valid() || p_width <= 0 || p_height <= 0) return;
