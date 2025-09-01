@@ -47,7 +47,7 @@ diff_tests/.godot/
 *.uid
 *.import
 
-
+*.onnx
 *.ninja
 .ninja/
 run_ninja_env.bat

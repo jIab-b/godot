@@ -3,3 +3,8 @@ controlnet-aux
 huggingface-hub
 safetensors
 transformers
+onnx
+tensorrt
+pycuda
+numpy
+Pillow

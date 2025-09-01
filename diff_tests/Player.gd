@@ -3,6 +3,9 @@ extends CharacterBody3D
 @export var speed: float = 1.5  # Reduced speed by 3x (was 5.0)
 @export var mouse_sensitivity: float = 0.05  # Reduced sensitivity (default was 0.2)
 
+# Hold onto the effect instance we attach to the camera so we can trigger it later
+var diffusion_effect_ref: DiffusionEffect
+
 var camera_angle: float = 0.0
 
 func _ready():
@@ -15,6 +18,24 @@ func _ready():
     Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
     print("Player: Ready - Camera set as current, mouse captured")
     print("Player: Testing diffusion effect integration")
+    
+    # Create and attach DiffusionEffect to camera's compositor dynamically
+    var compositor = Compositor.new()
+    diffusion_effect_ref = DiffusionEffect.new()
+    # Use the correct property name 'compositor_effects'
+    compositor.compositor_effects = [diffusion_effect_ref]
+    
+    if camera:
+        camera.compositor = compositor
+        print("Player: DiffusionEffect attached to camera compositor")
+        print("Player: Render callback should now be triggered on key press")
+        # Debug: dump compositor effects
+        var effects = camera.compositor.get_compositor_effects()
+        print("Player: Camera compositor has ", effects.size(), " effect(s)")
+        for e in effects:
+            print(" - ", e)
+    else:
+        print("Player: Camera not found - cannot attach DiffusionEffect")
     
     # Test if we can access the diffusion module
     if ProjectSettings.has_setting("diffusion/enabled"):
@@ -45,23 +66,19 @@ func _input(event):
         print("\n=== DIFFUSION GENERATION TRIGGERED (4 key) ===")
         print("Player: 4 key pressed - triggering diffusion generation")
         print("Player: Checking diffusion module availability...")
-    
-        # Check if DiffusionEffect class exists
-        var test_instance = DiffusionEffect.new()
-        if test_instance:
-            print("Player: DiffusionEffect class available")
-            
-            # Check if method exists
-            if test_instance.has_method("trigger_diffusion"):
-                print("Player: trigger_diffusion method found")
-                print("Player: Calling diffusion generation...")
-                test_instance.trigger_diffusion()
-                print("Player: Diffusion trigger completed - check for C++ logs")
-            else:
-                print("Player: trigger_diffusion method missing")
-            
+        # Print GDScript call stack for debugging
+        if Engine.is_editor_hint() == false:
+            # print_stack prints only in debug builds, but it’s safe to call
+            print("--- GDScript Call Stack ---")
+            print_stack()
+
+        # Trigger the effect instance that is actually attached to the camera
+        if diffusion_effect_ref and diffusion_effect_ref.has_method("trigger_diffusion"):
+            print("Player: Calling trigger_diffusion() on attached DiffusionEffect instance...")
+            diffusion_effect_ref.trigger_diffusion()
+            print("Player: Diffusion trigger requested - check for C++ logs from _render_callback")
         else:
-            print("Player: DiffusionEffect class not available")
+            print("Player: ERROR - Attached DiffusionEffect instance missing or method not found")
     
         # Check project settings
         if ProjectSettings.has_setting("diffusion/enabled"):
