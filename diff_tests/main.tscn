@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://c2y2y2y2y2y2y"]
+[gd_scene load_steps=8 format=3 uid="uid://c2y2y2y2y2y2y"]
 
 [ext_resource type="PackedScene" uid="uid://c1vobe4gugtcf" path="res://scenes/old_town/scene.gltf" id="old_town"]
 [ext_resource type="Script" uid="uid://h8gqay0ssjjo" path="res://Player.gd" id="player_script"]
@@ -15,6 +15,11 @@ background_mode = 2
 sky = SubResource("Sky_h2yge")
 tonemap_mode = 2
 glow_enabled = true
+
+[sub_resource type="DiffusionEffect" id="DiffusionEffect_0xm2m"]
+
+[sub_resource type="Compositor" id="Compositor_h2yge"]
+compositor_effects = Array[CompositorEffect]([SubResource("DiffusionEffect_0xm2m")])
 
 [node name="Main" type="Node3D"]
 
@@ -33,3 +38,4 @@ script = ExtResource("player_script")
 
 [node name="Camera3D" type="Camera3D" parent="Player"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+compositor = SubResource("Compositor_h2yge")
