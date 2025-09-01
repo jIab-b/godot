@@ -1,0 +1,10 @@
+scons platform=windows dev_build=yes ninja=yes fast_unsafe=yes use_llvm=yes
+
+# first build
+scons platform=windows target=editor module_diffusion_enabled=yes cache_path=.scons_cache
+
+
+scons platform=windows target=editor module_diffusion_enabled=yes cache_path=.scons_cache
+
+
+scons platform=windows target=editor module_diffusion_enabled=yes cache_path=.scons_cache ninja=yes 

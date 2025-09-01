@@ -1,0 +1,55 @@
+[gd_scene load_steps=4 format=3 uid="uid://be4x5ixepkfwo"]
+
+[ext_resource type="Script" path="res://diffusion_test_scene.gd" id="1_abc123"]
+
+[sub_resource type="Compositor" id="Compositor_1"]
+
+[sub_resource type="DiffusionEffect" id="DiffusionEffect_1"]
+
+[node name="DiffusionTestScene" type="Node3D"]
+script = ExtResource("1_abc123")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 2, 5)
+compositor = SubResource("Compositor_1")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = QuadMesh.new()
+skeleton = NodePath("")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 0, 5, 0)
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Instructions" type="Label" parent="UI"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -120.0
+offset_right = 600.0
+offset_bottom = -10.0
+text = "Diffusion Module Test Scene
+
+Instructions:
+1. Ensure 'diffusion/enabled' is true in Project Settings
+2. Press '4' key or click 'Trigger Diffusion' to generate
+3. Check console output for status messages
+4. Generated images will be saved in res://diff_stuff/"
+
+[node name="TriggerButton" type="Button" parent="UI"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -150.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 50.0
+text = "Trigger Diffusion"

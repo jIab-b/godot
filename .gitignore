@@ -31,14 +31,23 @@ misc/hooks/pre-commit-custom-*
 ### Godot generated files ###
 #############################
 
+
+*.png
 bin/
 # Buildsystem
 bin
 *.gen.*
 compile_commands.json
 platform/windows/godot_res.res
+scenes/hellarena/
+scenes/old_town/
+diff_tests/scenes/old_town/
+diff_tests/.godot/
+*.svg
+*.uid
+*.import
 
-# Ninja build files
+
 *.ninja
 .ninja/
 run_ninja_env.bat

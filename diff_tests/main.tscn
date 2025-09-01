@@ -1,0 +1,15 @@
+[gd_scene load_steps=4 format=3 uid="uid://c2y2y2y2y2y2y"]
+
+[ext_resource type="PackedScene" path="res://scenes/old_town/scene.gltf" id="old_town"]
+[ext_resource type="Script" path="res://Player.gd" id="player_script"]
+
+[node name="Main" type="Node3D"]
+
+[node name="OldTown" type="Node3D" parent="." instance=ExtResource("old_town")]
+
+[node name="Player" type="CharacterBody3D" parent="."]
+script = ExtResource("player_script")
+position = Vector3(0, 2, 0)
+
+[node name="Camera3D" type="Camera3D" parent="Player"]
+position = Vector3(0, 1, 0)
