@@ -23,6 +23,7 @@
 ###########################
 
 control_test/
+*.trt
 
 /custom.py
 misc/hooks/pre-commit-custom-*

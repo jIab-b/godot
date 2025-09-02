@@ -18,21 +18,18 @@ class UNetWrapper(torch.nn.Module):
         text_embeds,
         time_ids,
         adapter_feat_0,
-        adapter_feat_1, 
+        adapter_feat_1,
         adapter_feat_2,
         adapter_feat_3,
     ):
-        added_cond_kwargs = {"text_embeds": text_embeds, "time_ids": time_ids}
-        down_intrablock_additional_residuals = [
-            adapter_feat_0, adapter_feat_1, adapter_feat_2, adapter_feat_3
-        ]
-        
         result = self.unet(
             sample,
             timestep,
             encoder_hidden_states,
-            added_cond_kwargs=added_cond_kwargs,
-            down_intrablock_additional_residuals=down_intrablock_additional_residuals,
+            added_cond_kwargs={"text_embeds": text_embeds, "time_ids": time_ids},
+            down_intrablock_additional_residuals=[
+                adapter_feat_0, adapter_feat_1, adapter_feat_2, adapter_feat_3
+            ],
             return_dict=False,
         )
         return result[0]
@@ -53,8 +50,8 @@ def export_unet():
     sample = torch.randn(batch, 4, 128, 128, device="cuda").half()
     timestep = torch.full((batch,), 1.0, device="cuda").half()
     encoder_hidden_states = torch.randn(batch, 77, 2048, device="cuda").half()
-    text_embeds = torch.randn(batch, 1280, device="cuda").half()
-    time_ids = torch.randn(batch, 6, device="cuda").half()
+    text_embeds = torch.zeros(batch, 1280, device="cuda").half()
+    time_ids = torch.zeros(batch, 6, device="cuda").half()
 
     adapter = T2IAdapter.from_pretrained(
         "TencentARC/t2i-adapter-depth-midas-sdxl-1.0",
@@ -66,7 +63,6 @@ def export_unet():
         if isinstance(adapter_feats, torch.Tensor):
             adapter_feats = (adapter_feats,)
         down_intra = [f.contiguous() for f in adapter_feats]
-        
         while len(down_intra) < 4:
             down_intra.append(torch.zeros_like(down_intra[0]))
 
@@ -100,10 +96,7 @@ def export_unet():
         "encoder_hidden_states": {0: "batch"},
         "text_embeds": {0: "batch"},
         "time_ids": {0: "batch"},
-        "adapter_feat_0": {0: "batch"},
-        "adapter_feat_1": {0: "batch"},
-        "adapter_feat_2": {0: "batch"},
-        "adapter_feat_3": {0: "batch"},
+        # adapter features exported with fixed shapes for stability in TRT; omit dynamic axes for them
         "out_sample": {0: "batch", 2: "height", 3: "width"},
     }
 
